@@ -7,9 +7,9 @@ description: End-to-end feature development loop. Use when the user asks to deve
 
 ## Purpose
 
-Turn a rough feature idea into a merged PR through a disciplined, gated loop. Composes the workspace dev-loop skills (`brainstorming`, `writing-plans`, `using-git-worktrees`, `subagent-driven-development`, `test-driven-development`, `systematic-debugging`, `requesting-code-review`, `receiving-code-review`, `finishing-a-development-branch`, `dispatching-parallel-agents`) into one procedure. Approval gates keep the user in control; verification is mandatory at every step.
+Turn a rough feature idea into a merged PR through a disciplined, gated loop. Composes the [obra/superpowers](https://github.com/obra/superpowers) skills (MIT, © 2025 Jesse Vincent — installed separately, see the MuseFactory AGENTS.md) into one procedure: `brainstorming`, `writing-plans`, `using-git-worktrees`, `subagent-driven-development`, `test-driven-development`, `systematic-debugging`, `requesting-code-review`, `receiving-code-review`, `finishing-a-development-branch`, `dispatching-parallel-agents`. Approval gates keep the user in control; verification is mandatory at every step.
 
-Procedure composed from workspace dev-loop skills adapted from obra/superpowers (MIT, © 2025 Jesse Vincent).
+Procedure composed from the obra/superpowers skills (MIT, © 2025 Jesse Vincent), installed separately per the MuseFactory AGENTS.md.
 
 ## Workflow
 

@@ -4,7 +4,7 @@ You are a Muse agent. Your user wants the MuseFactory system installed in their 
 
 ## What you're installing
 
-- **12 skills** (`skills/`): the engineering procedure library. Eleven are adapted from obra/superpowers (MIT, attribution inside each file); `develop` composes them into the end-to-end loop: orient → brainstorm → plan → dual plan review (product + technical) → isolate in a worktree → execute with TDD → debug → code review → finish/PR.
+- **The `develop` skill** (`skills/develop` in this repo): the end-to-end engineering loop — orient → brainstorm → plan → dual plan review (product + technical) → isolate in a worktree → execute with TDD → debug → code review → finish/PR. It composes the upstream [obra/superpowers](https://github.com/obra/superpowers) skills (MIT), which you install separately in Step 1 — they are a dependency, not vendored here.
 - **1 saved workflow** (`workflows/dev-factory.js`): deterministic orchestration that reads a backlog markdown doc, triages items, runs each through the `develop` skill, and reports.
 
 ## Prerequisites
@@ -15,17 +15,25 @@ Verify each; install or ask the user where you can't:
 - A Chromium browser available to the agent (for browser verification phases).
 - The user must be logged into GitHub: `gh auth status`. If not, ask them to run `gh auth login`.
 
-## Step 1 — Install the skills
+## Step 1 — Install the base skills (obra/superpowers)
 
-Copy every directory under this repo's `skills/` into the user's `~/workspace/skills/` (create it if missing), preserving structure including `references/` and `bin/` subdirectories. Each skill directory must contain `SKILL.md` with YAML frontmatter (`name`, `description`). Verify the copy: 12 directories, each with `SKILL.md`.
+The `develop` skill composes these upstream skills: `brainstorming`, `writing-plans`, `executing-plans`, `subagent-driven-development`, `test-driven-development`, `systematic-debugging`, `requesting-code-review`, `receiving-code-review`, `finishing-a-development-branch`, `using-git-worktrees`, `dispatching-parallel-agents`.
 
-## Step 2 — Install the workflow
+1. Clone upstream (MIT licensed): `git clone --depth 1 https://github.com/obra/superpowers /tmp/superpowers`
+2. Install into the workspace: `mkdir -p ~/workspace/skills && cp -r /tmp/superpowers/skills/* ~/workspace/skills/` (copy at least the 11 listed above; copying all of them is fine).
+3. Verify: each of the 11 directories under `~/workspace/skills/` contains a `SKILL.md`.
+
+## Step 2 — Install the MuseFactory skill
+
+Copy this repo's `skills/develop` into `~/workspace/skills/develop` (including its `references/` directory). Verify `~/workspace/skills/develop/SKILL.md` exists.
+
+## Step 3 — Install the workflow
 
 1. Read this repo's `workflows/dev-factory.js` in full.
 2. Register it with `workflow.create`, passing `name: "dev-factory"` and the file's entire contents as `script`. (The script's first statement must be the `export const meta = {...}` line — keep it verbatim.)
 3. Verify with `workflow.list` — `dev-factory` must appear with phases `intake, triage, develop, report`.
 
-## Step 3 — Wire the first project
+## Step 4 — Wire the first project
 
 For each project the user wants on the factory:
 
@@ -46,7 +54,7 @@ For each project the user wants on the factory:
 
 ## Optional — Claude Code plugin setup
 
-The skills are plain markdown with frontmatter, so they also work as a Claude Code plugin:
+The `develop` skill is plain markdown with frontmatter, so it also works as a Claude Code plugin alongside the superpowers plugin:
 
 1. In a copy of this repo, add `.claude-plugin/plugin.json`:
    ```json
@@ -57,8 +65,8 @@ The skills are plain markdown with frontmatter, so they also work as a Claude Co
      "skills": "./skills"
    }
    ```
-2. Ensure every `skills/<name>/SKILL.md` has `name` and `description` frontmatter (they do).
-3. Install: `Muse plugin add <path-or-marketplace>` in the user's project, or point a plugin marketplace at this repo.
+2. Ensure `skills/develop/SKILL.md` has `name` and `description` frontmatter (it does).
+3. Install the upstream superpowers plugin first (it provides the 11 base skills), then `Muse plugin add <path-or-marketplace>` for this repo.
 4. The `dev-factory` workflow is Muse-specific (it uses the workflow runtime); under Claude Code, replicate its phases — intake/triage/develop/report — as an agent instruction or a slash command that drives the `develop` skill per backlog item.
 
 ## Notes

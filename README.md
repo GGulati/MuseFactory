@@ -10,14 +10,16 @@ A personal software factory: a backlog markdown doc goes in, reviewed and verifi
 
 **What's in this repo**
 
-- `skills/` — 12 engineering skills. Eleven are adapted from [obra/superpowers](https://github.com/obra/superpowers) (MIT); `develop` composes them into the end-to-end loop.
+- `skills/develop/` — the end-to-end `develop` skill (brainstorm → plan → dual review → TDD → review → PR).
 - `workflows/dev-factory.js` — the saved-workflow script (deterministic orchestration).
 - `AGENTS.md` — setup-from-scratch guide for a Muse agent, plus the operating contract.
 
+**Dependencies** (installed during setup, not vendored): the [obra/superpowers](https://github.com/obra/superpowers) skills (MIT), which `develop` composes.
+
 **Setup**
 
-If you're a Muse agent, follow `AGENTS.md`. If you're a human: clone, copy `skills/` into `~/workspace/skills/`, register `workflows/dev-factory.js` as a saved workflow named `dev-factory`, then point it at a backlog doc and a repo.
+If you're a Muse agent, follow `AGENTS.md`. If you're a human: clone, install the superpowers skills, copy `skills/develop` into `~/workspace/skills/`, register `workflows/dev-factory.js` as a saved workflow named `dev-factory`, then point it at a backlog doc and a repo.
 
 ## License
 
-MIT — see `LICENSE`. The adapted skills retain their attribution to obra/superpowers (MIT © 2025 Jesse Vincent).
+MIT — see `LICENSE`.
