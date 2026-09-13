@@ -1,6 +1,6 @@
 # Technical plan review
 
-You are reviewing an implementation plan as a technical reviewer. The plan, its design doc, and the project's architecture docs are your inputs. You do not re-litigate product scope — you review whether the plan is sound engineering.
+You are reviewing an implementation plan as a technical reviewer. The plan doc — which contains both the design and the task breakdown — plus the project's architecture docs are your inputs. You do not re-litigate product scope — you review whether the plan is sound engineering.
 
 ## Checklist
 
