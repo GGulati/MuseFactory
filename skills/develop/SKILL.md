@@ -27,7 +27,7 @@ Follow the `writing-plans` skill: break the approved design into bite-sized task
 
 ### Phase 3 — Plan review (two angles)
 
-Run two independent reviewer passes over the plan, in parallel when possible. Each reviewer returns severity-ranked findings (critical / major / minor) with task references, plus a verdict of approve or revise.
+Spawn two independent reviewer subagents with fresh context — each gets only the plan doc, the design doc, and its review prompt, never your working history — in parallel when possible. Each reviewer returns severity-ranked findings (critical / major / minor) with task references, plus a verdict of approve or revise.
 
 - Product review (prompt in `references/plan-review-product.md`): goal alignment, scope correctness, behavior/UX implications, testable success criteria, explicit non-goals.
 - Technical review (prompt in `references/plan-review-technical.md`): architecture fit, interfaces and data flow, non-functional requirements (performance, scalability, reliability, security, observability), edge cases and failure modes, test strategy, migration and rollback.
@@ -48,7 +48,7 @@ On any failure, follow `systematic-debugging`: reproduce, root-cause, fix, verif
 
 ### Phase 7 — Code review
 
-Follow `requesting-code-review` on the full diff against the plan: severity-ranked findings, critical issues block progress. Handle user feedback per `receiving-code-review` (verify before implementing; push back with reasons when warranted).
+Follow `requesting-code-review` on the full diff against the plan — it spawns a fresh-context reviewer subagent; never review your own diff in-session: severity-ranked findings, critical issues block progress. Handle user feedback per `receiving-code-review` (verify before implementing; push back with reasons when warranted).
 
 ### Phase 8 — Finish
 
@@ -62,7 +62,8 @@ Follow `finishing-a-development-branch`: full verification (tests, typecheck/bui
 4. Follow the collaboration contract below: ask on product calls, game-design decisions, technical forks, and costly ambiguity — autopilot everything smaller.
 5. User-owned scratchpads and notes are read-only unless the user asks for changes.
 6. Child agents never push, merge, or delete branches.
-7. Factory worker mode: when running as a factory worker (e.g. a `dev-factory` workflow agent) where subagent dispatch is unavailable, execute the subagent-driven phases inline instead of dispatching — Phase 3 reviewer passes become two separate checklist passes in-session, Phase 5 follows the `executing-plans` skill step-by-step, Phase 7 becomes a rigorous self-review against the plan. Record the substitution wherever the plan records rulings.
+7. Factory worker mode: when running as a factory worker (e.g. a `dev-factory` workflow agent) where subagent dispatch is unavailable, execute the subagent-driven phases inline instead of dispatching — Phase 5 follows the `executing-plans` skill step-by-step. Reviews are the exception: reviewers must always be fresh-context subagents, so the worker never reviews in-session. Phase 3 and Phase 7 return the plan/diff as a `needs-review` blocked item, and the review is run by a fresh agent outside the worker. Record the substitution wherever the plan records rulings.
+8. Reviewers are always fresh-context subagents — plan reviewers (Phase 3), code reviewers (Phase 7), and any ad-hoc review pass. A reviewer receives only the artifact under review plus its review brief, never your session history. Never review your own work in-session.
 
 ## Collaboration contract
 
