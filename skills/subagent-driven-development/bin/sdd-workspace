@@ -1,0 +1,42 @@
+#!/usr/bin/env bash
+# Resolve and ensure the per-plan working directory used by the
+# subagent-driven-development skill: home to task briefs, implementer
+# reports, review packages, and the progress ledger. Prints the absolute path.
+#
+# One directory per plan, so a follow-up plan can never read or overwrite
+# another plan's artifacts. A stale ledger misread as current progress makes
+# controllers skip whole task sequences — plan-scoping removes that failure
+# structurally.
+#
+# Inside a git repo the workspace lives under <repo-root>/.sdd/<plan-slug>/
+# (git-ignored); outside a repo it lives under <BASE_DIR>/.sdd/<plan-slug>/.
+#
+# Adapted from obra/superpowers (MIT, © 2025 Jesse Vincent).
+#
+# Usage: sdd-workspace PLAN_FILE [BASE_DIR]
+set -euo pipefail
+
+if [ $# -lt 1 ] || [ $# -gt 2 ]; then
+  echo "usage: sdd-workspace PLAN_FILE [BASE_DIR]" >&2
+  exit 2
+fi
+
+plan=$1
+[ -f "$plan" ] || { echo "no such plan file: $plan" >&2; exit 2; }
+
+slug=$(basename "$plan" .md)
+[ -n "$slug" ] && [ "$slug" != "." ] && [ "$slug" != ".." ] \
+  || { echo "cannot derive a workspace name from: $plan" >&2; exit 2; }
+
+if [ $# -eq 2 ]; then
+  base="$2"
+else
+  base=$(git rev-parse --show-toplevel 2>/dev/null) || base="$PWD"
+fi
+
+dir="$base/.sdd/$slug"
+mkdir -p "$dir"
+if git rev-parse --show-toplevel >/dev/null 2>&1; then
+  printf '*\n' > "$base/.sdd/.gitignore"
+fi
+cd "$dir" && pwd
