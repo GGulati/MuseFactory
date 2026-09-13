@@ -62,6 +62,7 @@ Follow `finishing-a-development-branch`: full verification (tests, typecheck/bui
 4. Follow the collaboration contract below: ask on product calls, game-design decisions, technical forks, and costly ambiguity — autopilot everything smaller.
 5. User-owned scratchpads and notes are read-only unless the user asks for changes.
 6. Child agents never push, merge, or delete branches.
+7. Factory worker mode: when running as a factory worker (e.g. a `dev-factory` workflow agent) where subagent dispatch is unavailable, execute the subagent-driven phases inline instead of dispatching — Phase 3 reviewer passes become two separate checklist passes in-session, Phase 5 follows the `executing-plans` skill step-by-step, Phase 7 becomes a rigorous self-review against the plan. Record the substitution wherever the plan records rulings.
 
 ## Collaboration contract
 
