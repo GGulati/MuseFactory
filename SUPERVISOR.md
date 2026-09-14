@@ -430,7 +430,7 @@ quotes the byte-identical questions, never a paraphrase.
 
 ## 5. Tick precedence — what you must not fight (§11.1)
 
-The per-project liveness tick runs every 2 minutes. Its sweep order is
+The per-project liveness tick runs every 5 minutes (token-budget decision 2026-09-14; was 2 minutes). Its sweep order is
 explicit:
 
 1. Complete pending `chain_intent` (claim → release → launch → confirm).
