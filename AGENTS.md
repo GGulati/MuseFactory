@@ -5,7 +5,9 @@ You are a Muse agent. Your user wants the MuseFactory system installed in their 
 ## What you're installing
 
 - **The `develop` skill** (`skills/develop` in this repo): the end-to-end engineering loop — orient → brainstorm → plan → dual plan review (product + technical) → isolate in a worktree → execute with TDD → debug → code review → finish/PR. It composes the upstream [obra/superpowers](https://github.com/obra/superpowers) skills (MIT), which you install separately in Step 1 — they are a dependency, not vendored here.
-- **1 saved workflow** (`workflows/dev-factory.js`): deterministic orchestration that reads a backlog markdown doc, triages items, runs each through the `develop` skill, and reports.
+- **1 saved workflow** (`workflows/dev-factory.js`): a pure task worker — one backlog item to a typed terminal envelope, then it exits. It never loops over the backlog, never relaunches itself, never edits the backlog.
+- **The runtime scripts** (`scripts/`): the serialized mutation layer — mutex, checkpoint state machine, terminal-envelope reconciliation, notification queue, launch protocol (prepare/confirm/adopt), and the liveness tick. All shared-state mutations go through these scripts, never through the workflow or the supervisor directly.
+- **The supervisor runbook** (`SUPERVISOR.md`): the turn protocol for the LLM supervisor that applies terminal envelopes, handles replies and directives in the project side chat, and restarts workers.
 
 ## Prerequisites
 
@@ -37,26 +39,27 @@ Run `scripts/sync-skills.sh` from this repo. It copies `skills/develop` (includi
 
 1. Read this repo's `workflows/dev-factory.js` in full.
 2. Register it with `workflow.create`, passing `name: "dev-factory"` and the file's entire contents as `script`. (The script's first statement must be the `export const meta = {...}` line — keep it verbatim.)
-3. Verify with `workflow.list` — `dev-factory` must appear with phases `intake, triage, develop, report`.
+3. Verify with `workflow.list` — `dev-factory` must appear with phases `orient, implement, verify, report`.
 
 ## Step 4 — Wire the first project
 
 For each project the user wants on the factory:
 
-1. **Backlog doc (source of truth).** Create `~/workspace/your_files/<project>-backlog/<project>-backlog.md`. It appears in the user's Library as an editable doc. Seed it with their current bullets if they have any. Conventions to tell the user:
-   - Top-level bullets are backlog items; sub-bullets are detail at any depth; order is priority.
-   - The factory re-reads it live at the start of every run — edits and reorders are picked up automatically.
-   - Items are removed only after their work is fully merged. Don't rename an item mid-flight (branch matching uses the slugified title).
-2. **Repo checkout.** Clone or locate the project repo (record the path; the workflow assumes the main branch is named `main` — adjust the script if it isn't).
-3. **Project side chat.** Create one side chat per project. Runs are launched from there and all questions/approvals land there.
-4. **Launch.** Call the `dev-factory` workflow with `{project, backlog_path, repo_path}`. `concurrency` defaults to 1 — raise it only when the user explicitly wants parallel streams.
+1. **Register the project.** Run `scripts/register-project.sh --project <project> --repo <repo-path> --worktree <worktree-path> --base-branch <branch> --chat <side-chat-id>`. It creates `~/workspace/dev-factory/projects/<project>/` with `project.json`, `backlog.md`, `user-replies/`, `checkpoints/`, `tombstones/`, `handled_run_ids`, and the notification queue. Conventions to tell the user:
+   - Top-level bullets in `backlog.md` are backlog items; sub-bullets are detail at any depth; order is priority.
+   - The backlog is the message queue: items are appended/removed by the envelope scripts only, never edited by workers. Don't rename an item mid-flight (branch matching uses the slugified title).
+2. **Project side chat.** Create one side chat per project. Runs are launched from there; all questions/approvals land there; replies in it are the real-time resume event.
+3. **Tick cron.** Create a per-project cron `dev-factory-tick-<project>` firing every 2 minutes, with delivery to the project side chat. The tick detects silent death, crash loops, and stalls — it never does supervision work.
+4. **Launch.** Call the `dev-factory` workflow with `{project, item_id, backlog_path, repo_path, worktree_path, base_branch}`. One run = one item; when a `done` envelope reconciles and the backlog still has open items, the tick (or the supervisor turn) launches the next one.
 
 ## Operating contract (keep this behavior)
 
 - **Collaboration:** planning and architecture are highly collaborative — product direction, game design, and technical forks go to the user. Small implementation choices run on autopilot (decide, log, move on). The bar: ask when a wrong guess wastes real work.
-- **Gates are mandatory:** end of design (Phase 1), end of plan (Phase 3), push/PR (Phase 8). Never skip.
+- **Gates are mandatory:** plan review (product + technical), code review, and push/PR each need explicit user approval. Never skip. Ambiguous replies get a one-line confirmation question — never an implicit approval.
 - **Safety:** workers never push, merge, or delete branches. PR creation needs explicit user approval.
-- **Factory questions:** workers return blocked/question envelopes; the workflow groups them per item in one report. The user answers in the project side chat; relaunch resumes (intake skips removed items and resumes active branches instead of redoing them).
+- **Terminal envelopes:** the worker's top-level return is exactly the envelope (`done` / `awaiting-approval` / `blocked` / `failed`). The supervisor turn applies it via `scripts/apply-envelope.sh` (exactly-once via the `handled_run_ids` ledger), and unanswered questions are asked again byte-identically. A reply in the project side chat resumes inline in that chat turn.
+- **Reviews are fresh-context:** workers never review in-session. A `needs-review` blocked envelope routes to a fresh reviewer subagent, whose findings are recorded and fed back to the worker.
+- **Crash-only:** a crash at any point converges on re-run. Mutations are idempotent, ledger-checked, and guarded by the project mutex + CAS preconditions. The tick's liveness sweep is the backstop for silent death, orphaned checkpoints, and stalled stops.
 
 ## Optional — Claude Code plugin setup
 
@@ -73,7 +76,7 @@ The `develop` skill is plain markdown with frontmatter, so it also works as a Cl
    ```
 2. Ensure `skills/develop/SKILL.md` has `name` and `description` frontmatter (it does).
 3. Install the upstream superpowers plugin first (it provides the 11 base skills), then `Muse plugin add <path-or-marketplace>` for this repo.
-4. The `dev-factory` workflow is Muse-specific (it uses the workflow runtime); under Claude Code, replicate its phases — intake/triage/develop/report — as an agent instruction or a slash command that drives the `develop` skill per backlog item.
+4. The `dev-factory` workflow is Muse-specific (it uses the workflow runtime); under Claude Code, replicate its contract — one item to a terminal envelope, phases `orient, implement, verify, report` — as an agent instruction or a slash command that drives the `develop` skill per backlog item.
 
 ## Notes
 
