@@ -27,7 +27,7 @@ The `develop` skill composes these upstream skills: `brainstorming`, `writing-pl
 
 ## Step 2 — Install the MuseFactory skill
 
-Run `scripts/sync-skills.sh` from this repo. It copies `skills/develop` (including `references/`) into `~/workspace/skills/develop` and verifies the install. Override the target with `MUSE_WORKSPACE=/path/to/workspace` if your workspace lives elsewhere.
+Run `scripts/sync-skills.sh` from this repo. It copies every skill in `skills/` (each `SKILL.md` plus its `references/`) into `~/workspace/skills/<name>` via rsync --delete and verifies the install. Override the target with `MUSE_WORKSPACE=/path/to/workspace` if your workspace lives elsewhere.
 
 ### Keeping skills in sync (repo is the source of truth)
 
